@@ -1,42 +1,41 @@
-// Banner.jsx
 import React, { useEffect, useState } from 'react';
 
 const Banner = () => {
   const [bannerData, setBannerData] = useState([]);
   const [randomBanner, setRandomBanner] = useState(null);
 
-  // Mengambil data dari API
   useEffect(() => {
-    const fetchBannerData = async () => {
-      try {
-        const response = await fetch('https://66e3fab0d2405277ed1287b5.mockapi.io/api/dasboard/banner'); 
-        const data = await response.json();
+    // Mengambil data dari API
+    fetch('https://66e3fab0d2405277ed1287b5.mockapi.io/api/dasboard/banner')
+      .then((response) => response.json())
+      .then((data) => {
         setBannerData(data);
-        
-        // Pilih banner secara acak setelah data diambil
+        // Memilih banner secara acak
         const randomIndex = Math.floor(Math.random() * data.length);
         setRandomBanner(data[randomIndex]);
-      } catch (error) {
-        console.error('Error fetching banner data:', error);
-      }
-    };
-
-    fetchBannerData();
+      })
+      .catch((error) => console.error('Error fetching banner data:', error));
   }, []);
 
   if (!randomBanner) {
-    return <div>Loading...</div>; // Tampilkan loading saat data masih diambil
+    return <div>Loading...</div>;
   }
 
   return (
-    <div
-      className="p-9"
-      style={{ backgroundImage: randomBanner.background, backgroundSize: 'cover', height: '200px' }}
-    >
-      <h1 className="font-['Open_Sans'] text-3xl italic font-extrabold tracking-wide text-center">
-        {randomBanner.title}
-      </h1>
-      <p className="text-center text-xl italic">{randomBanner.quote}</p>
+    <div className="flex items-center p-4 bg-[#FFB1B1] rounded-lg shadow-md">
+      <div className="w-1/3 max-h-64 overflow-hidden rounded-l-lg">
+        <img
+          src={randomBanner.imageside}
+          alt={randomBanner.title}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="w-2/3 p-4">
+        <h1 className="text-3xl font-extrabold text-[#c22e2e] tracking-wide text-center">
+          {randomBanner.title}
+        </h1>
+        <p className="text-xl italic text-center mt-2">{randomBanner.quote}</p>
+      </div>
     </div>
   );
 };
