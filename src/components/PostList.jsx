@@ -1,29 +1,74 @@
 import React, { useState } from 'react';
 import CommentForm from './CommentForm';
 
-function PostList({ posts, addComment, handleLike, handleDislike, removePost }) {
+function PostList({ posts, addComment, handleLike, removePost }) {
+  const [selectedCategory, setSelectedCategory] = useState('Semua');
+  const [expandedPostIds, setExpandedPostIds] = useState([]);
+
+  // Daftar kategori yang tetap, meskipun tidak ada postingan di kategori tertentu
+  const categories = [
+    'Semua', 
+    'Freelance', 
+    'CopyWriting', 
+    'DigitalMarketing', 
+    'Medsos Affiliate', 
+    'Content Creator'
+  ];
+
+  // Fungsi untuk menangani perubahan kategori
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+  };
+
+  // Filter postingan berdasarkan kategori yang dipilih
+  const filteredPosts =
+    selectedCategory === 'Semua'
+      ? posts
+      : posts.filter((post) => post.category === selectedCategory);
+
+  // Fungsi untuk toggle expand konten
+  const toggleContent = (postId) => {
+    setExpandedPostIds((prev) =>
+      prev.includes(postId)
+        ? prev.filter((id) => id !== postId)
+        : [...prev, postId]
+    );
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-semibold text-[#DA8359] mb-6">Daftar Postingan</h2>
+      <h2 className="text-2xl font-semibold text-[#c22e2e] mb-6">Daftar Postingan</h2>
+      
+      {/* Dropdown Filter Kategori */}
+      <div className="mb-4">
+        <label htmlFor="category" className="mr-2 text-gray-600">Filter berdasarkan kategori:</label>
+        <select
+          id="category"
+          value={selectedCategory}
+          onChange={handleCategoryChange}
+          className="border border-gray-300 rounded p-2"
+        >
+          {categories.map((category, index) => (
+            <option key={index} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      {/* No posts message */}
-      {posts.length === 0 ? (
-        <p className="text-gray-500">Belum ada postingan.</p>
+      {/* Daftar Postingan */}
+      {filteredPosts.length === 0 ? (
+        <p className="text-gray-500">Tidak ada postingan di kategori ini.</p>
       ) : (
-        posts.map((post) => {
-          const [isExpanded, setIsExpanded] = useState(false); // State to control if the full content is shown
-          const previewText = post.body.slice(0, 100); // Show only the first 100 characters for preview
-
-          const toggleContent = () => {
-            setIsExpanded(!isExpanded); // Toggle between preview and full content
-          };
+        filteredPosts.map((post) => {
+          const isExpanded = expandedPostIds.includes(post.id);
+          const previewText = post.body.slice(0, 100);
 
           return (
             <div
               key={post.id}
               className="border border-gray-300 rounded-lg p-4 mb-4 relative bg-white shadow-md"
             >
-              {/* Remove Post Button */}
               <button
                 onClick={() => removePost(post.id)}
                 className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 transition duration-200"
@@ -31,63 +76,51 @@ function PostList({ posts, addComment, handleLike, handleDislike, removePost }) 
                 Hapus
               </button>
 
-              {/* Post Title */}
-              <h3 className="text-xl font-semibold mb-2">{post.title}</h3>
-
-              {/* Post Category */}
+              <h3 className="text-2xl font-semibold mb-2 text-[#c22e2e]">{post.title}</h3>
               <p className="text-gray-500 mb-2">Kategori: {post.category}</p>
-
-              {/* Post Body */}
               <p className="mb-4">
                 {isExpanded ? post.body : `${previewText}...`}
                 {post.body.length > 100 && (
                   <button
-                    onClick={toggleContent}
+                    onClick={() => toggleContent(post.id)}
                     className="text-blue-500 ml-2"
                   >
                     {isExpanded ? 'Baca lebih sedikit' : 'Baca selengkapnya'}
                   </button>
                 )}
               </p>
-
-              {/* Image Display */}
-              <div className="flex justify-center mb-4">
-                {post.image && (
+              {post.image && (
                 <img
                   src={post.image}
                   alt="Post"
-                  className="w-80 h-auto mb-4 rounded-lg place-self-start"
+                  className="w-full h-auto mb-4 rounded-lg"
                 />
               )}
-              </div>
-              
-
-              {/* Like Button */}
-              <div className="mb-4">
+              <div className="flex justify-between items-center">
                 <button
                   onClick={() => handleLike(post.id)}
-                  className={`px-4 py-2 rounded-lg ${
-                    post.liked ? 'bg-blue-200' : 'bg-gray-200'
-                  }`}
+                  className="text-blue-500 hover:underline"
                 >
-                  Like ({post.likes})
+                  {post.liked ? 'Unlike' : 'Like'} ({post.likes})
                 </button>
               </div>
 
-              {/* Comments Section */}
-              <h4 className="text-lg font-medium mb-2">Komentar:</h4>
-              {Array.isArray(post.comments) && post.comments.length > 0 ? (
-                post.comments.map((comment, index) => (
-                  <p key={index} className="mb-2 border-l-4 border-gray-300 pl-2">
-                    {comment}
-                  </p>
-                ))
-              ) : (
-                <p className="text-gray-500">Belum ada komentar.</p>
-              )}
-
-              {/* Comment Form */}
-              <CommentForm postId={post.id} addComment={addComment} />
+              <div className="mt-4">
+                <h4 className="font-semibold mb-2">Komentar</h4>
+                <CommentForm postId={post.id} addComment={addComment} />
+                {post.comments.length === 0 ? (
+                  <p className="text-gray-500">Belum ada komentar.</p>
+                ) : (
+                  post.comments.map((comment, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-100 rounded-lg p-2 mb-2"
+                    >
+                      <p>{comment}</p>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           );
         })
