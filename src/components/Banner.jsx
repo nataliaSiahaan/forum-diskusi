@@ -9,7 +9,7 @@ const Banner = () => {
   useEffect(() => {
     const fetchBannerData = async () => {
       try {
-        const response = await fetch('https://66e3fab0d2405277ed1287b5.mockapi.io/api/dasboard/banner'); // URL API Anda
+        const response = await fetch('https://66e3fab0d2405277ed1287b5.mockapi.io/api/dasboard/banner'); 
         const data = await response.json();
         setBannerData(data);
         
